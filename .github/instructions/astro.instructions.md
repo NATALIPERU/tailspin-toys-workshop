@@ -19,6 +19,9 @@ import GameCard from '../components/GameCard.astro';
 import { getDatabase } from '../lib/db';
 import { getAllGames } from '../lib/games';
 
+/**
+ * Home page: lists all available games for crowdfunding.
+ */
 interface Props {
   title: string;
 }
@@ -30,6 +33,27 @@ const games = await getAllGames(getDatabase());
 <Layout title={title}>
   {games.map((game) => <GameCard {game} />)}
 </Layout>
+```
+
+**Component Props documentation:**
+- Every reusable `.astro` component must document its `Props` interface with TSDoc/JSDoc comments
+- Add a brief description of the component's purpose above the `Props` interface
+- Document each property with inline comments explaining its type and purpose
+- Example:
+
+```astro
+---
+/**
+ * Displays a single game card with cover image, title, and call-to-action.
+ */
+interface Props {
+  /** The game object containing id, title, image, and category */
+  game: Game;
+  /** Optional CSS class names to apply to the card container */
+  class?: string;
+}
+// ...
+---
 ```
 
 ## Layouts

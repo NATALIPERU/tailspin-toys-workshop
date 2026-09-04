@@ -45,11 +45,23 @@ import { asc, count, eq } from 'drizzle-orm';
 import type { Database } from './db';
 import { games } from '../../db/schema';
 
+/**
+ * Fetches all game IDs ordered by title for deterministic static builds.
+ *
+ * @param db - The database instance (injectable for testability)
+ * @returns Array of game IDs sorted by game title
+ * @remarks Results are ordered by title to ensure static builds are reproducible across runs
+ */
 export async function getAllGameIds(db: Database): Promise<number[]> {
   const rows = await db.select({ id: games.id }).from(games).orderBy(asc(games.title));
   return rows.map((r) => r.id);
 }
 ```
+
+**Documentation requirements:**
+- Every exported function must have a TSDoc/JSDoc comment with `@param`, `@returns`, and relevant `@remarks` or `@example` tags
+- Always document the injectable `db` parameter so its purpose and testability pattern remain clear
+- Document parameter and return types in the comment, not just in the code signature
 
 - Always `order by` a stable column (title) so static builds are deterministic.
 - Map raw rows to the app-facing `Game`/`Publisher`/`Category` types in one place; don't leak Drizzle row shapes into components.
