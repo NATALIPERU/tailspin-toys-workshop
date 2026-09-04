@@ -20,6 +20,24 @@ Unit tests run with **Vitest** (`npm run test:unit`). They cover the two highest
 - Use `describe('<module / function>')` blocks and `it('does X when Y')` cases.
 - Add type annotations on helpers and fixtures — this codebase requires explicit types.
 
+## Documentation in Tests
+
+Test files should include clear documentation:
+- Add a brief TSDoc/JSDoc comment at the top of the test file explaining what module is being tested
+- Each `describe` block should clearly identify the function or module being tested
+- Test case names (`it`) should describe the expected behavior in plain English
+
+Example:
+```ts
+/**
+ * Unit tests for the games data-access helpers.
+ * Tests cover ordering guarantees, lookups, and database relationships.
+ */
+import { describe, it, expect, beforeEach } from 'vitest';
+import { createTestDatabase } from '../../db/test-helpers';
+import { getAllGames, getGameById } from './games';
+```
+
 ## Testing Pure Transforms
 
 - No database needed — import the function and assert on its output.

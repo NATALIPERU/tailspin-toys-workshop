@@ -37,6 +37,61 @@ This is a crowdfunding platform for games with a developer theme. The applicatio
 - Use TypeScript with explicit types for function parameters and return values, especially in the data layer (`db/`, `src/lib/`)
 - Frontend code (TypeScript, Astro) must pass ESLint checks (`npm run lint`)
 
+### Comment Philosophy
+
+**Comment intent, not mechanics.** Comments should explain *why* a piece of code exists or the reasoning behind a non-obvious decision, not restate *what* the code already says. Remove comments that merely paraphrase the line below them.
+
+Examples:
+- ❌ Bad: `const max = 100; // Set max to 100`
+- ✅ Good: `const max = 100; // Limit concurrent requests to prevent server overload`
+- ❌ Bad: `if (games.length > 0) { // Check if array is not empty`
+- ✅ Good: `if (games.length > 0) { // Only render carousel if we have at least one game`
+
+**Treat outdated comments as bugs** — update or delete them in the same change that touches the related code.
+
+### TSDoc/JSDoc Documentation Requirements
+
+Every exported function in `db/` and `src/lib/` must have a TSDoc/JSDoc comment describing:
+- The function's purpose
+- Each parameter with `@param` tags
+- The return value with `@returns` tag
+- Any important notes with `@remarks` or `@example` tags
+
+Example:
+```ts
+/**
+ * Fetches all games ordered by title for deterministic static builds.
+ *
+ * @param db - The database instance (injectable for testability)
+ * @returns Array of games sorted by title, or empty array if none exist
+ * @remarks Results are ordered by title to ensure static builds are reproducible
+ */
+export async function getAllGames(db: Database): Promise<Game[]> {
+  // ...
+}
+```
+
+For data-access helpers, always document the injectable `db` parameter so the testing pattern stays clear.
+
+### Component Documentation
+
+Each reusable `.astro` component must document its `Props` interface with TSDoc/JSDoc comments:
+
+```astro
+---
+/**
+ * Displays a single game card with cover, title, and call-to-action.
+ */
+interface Props {
+  /** The game object containing id, title, image, and category */
+  game: Game;
+  /** Optional CSS class names to apply to the card container */
+  class?: string;
+}
+// ...
+---
+```
+
 ### Data Layer Patterns (Drizzle + Node SQLite)
 
 - Define tables in `db/schema.ts`; manage schema changes with drizzle-kit migrations - see `drizzle.instructions.md`

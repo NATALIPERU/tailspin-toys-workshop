@@ -18,6 +18,20 @@ applyTo: '**/*.spec.ts'
 - **Organization**: Group related tests for a feature under a `test.describe()` block.
 - **Hooks**: Use `beforeEach` for setup actions common to all tests in a `describe` block (e.g., navigating to a page).
 - **Titles**: Follow a clear naming convention, such as `Feature - Specific action or scenario`.
+- **Documentation**: Add a TSDoc/JSDoc comment at the top of the test file explaining what feature or page is being tested.
+
+Example:
+```typescript
+/**
+ * E2E tests for the games listing page.
+ * Verifies navigation, game card rendering, and filter functionality.
+ */
+import { test, expect } from '@playwright/test';
+
+test.describe('Games Listing Page', () => {
+  // ...
+});
+```
 
 
 ## File Organization
