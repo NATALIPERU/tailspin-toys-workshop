@@ -5,6 +5,7 @@ import type { Database } from './db';
 import {
     getAllGames,
     getAllGameIds,
+    getGamesPage,
     getGamesByFilters,
     getGameById,
 } from './games';
@@ -51,6 +52,26 @@ describe('games data-access helpers', () => {
         const ids = await getAllGameIds(db);
         const all = await getAllGames(db);
         expect(ids).toEqual(all.map((g) => g.id));
+    });
+
+    it('returns a page of games with stable pagination metadata', async () => {
+        await seedGames(db, 5);
+
+        const page = await getGamesPage(db, 2, 2);
+
+        expect(page.totalGames).toBe(5);
+        expect(page.totalPages).toBe(3);
+        expect(page.page).toBe(2);
+        expect(page.games.map((game) => game.title)).toEqual(['Game 03', 'Game 04']);
+    });
+
+    it('clamps page values outside the available range', async () => {
+        await seedGames(db, 2);
+
+        const page = await getGamesPage(db, 99, 2);
+
+        expect(page.page).toBe(1);
+        expect(page.games).toHaveLength(2);
     });
 
     it('filters games by one or more categories', async () => {
