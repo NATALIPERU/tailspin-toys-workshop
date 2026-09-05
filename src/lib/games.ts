@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, count, eq, inArray } from 'drizzle-orm';
 import type { Database } from './db';
 import { games, categories, publishers } from '../../db/schema';
 import type { Game } from '../types/game';
@@ -28,6 +28,19 @@ type GameSelectionRow = {
 export interface GameFilters {
     categoryIds?: number[];
     publisherId?: number;
+}
+
+export interface GamePage {
+    games: Game[];
+    page: number;
+    pageSize: number;
+    totalGames: number;
+    totalPages: number;
+}
+
+export interface GameFilterOptions {
+    categories: { id: number; name: string }[];
+    publishers: { id: number; name: string }[];
 }
 
 function mapGame(row: GameSelectionRow): Game {
@@ -65,6 +78,54 @@ function baseGamesQuery(db: Database) {
 export async function getAllGames(db: Database): Promise<Game[]> {
     const rows = await baseGamesQuery(db).orderBy(asc(games.title));
     return rows.map(mapGame);
+}
+
+/**
+ * Fetches one deterministic page of games and the catalog totals.
+ *
+ * @param db - The database instance used to query games.
+ * @param page - One-based page number; values below one use the first page.
+ * @param pageSize - Number of games to include per page.
+ * @returns The requested games and pagination metadata.
+ * @remarks Pagination is applied after title ordering so static pages remain stable between builds.
+ */
+export async function getGamesPage(
+    db: Database,
+    page: number,
+    pageSize: number,
+): Promise<GamePage> {
+    const normalizedPageSize = Math.max(1, Math.floor(pageSize));
+    const normalizedPage = Math.max(1, Math.floor(page));
+    const [{ totalGames }] = await db.select({ totalGames: count() }).from(games);
+    const totalPages = Math.max(1, Math.ceil(totalGames / normalizedPageSize));
+    const currentPage = Math.min(normalizedPage, totalPages);
+    const rows = await baseGamesQuery(db)
+        .orderBy(asc(games.title))
+        .limit(normalizedPageSize)
+        .offset((currentPage - 1) * normalizedPageSize);
+
+    return {
+        games: rows.map(mapGame),
+        page: currentPage,
+        pageSize: normalizedPageSize,
+        totalGames,
+        totalPages,
+    };
+}
+
+/**
+ * Fetches the category and publisher choices used by the games list filters.
+ *
+ * @param db - The database instance used to query filter options.
+ * @returns Filter options ordered by name for deterministic static output.
+ */
+export async function getGameFilterOptions(db: Database): Promise<GameFilterOptions> {
+    const [categoryRows, publisherRows] = await Promise.all([
+        db.select({ id: categories.id, name: categories.name }).from(categories).orderBy(asc(categories.name)),
+        db.select({ id: publishers.id, name: publishers.name }).from(publishers).orderBy(asc(publishers.name)),
+    ]);
+
+    return { categories: categoryRows, publishers: publisherRows };
 }
 
 /**

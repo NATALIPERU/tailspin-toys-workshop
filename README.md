@@ -16,6 +16,8 @@ The database is migrated and seeded automatically before `dev`/`build` (via the 
 
 The games listing page includes a category multi-select and a publisher filter. Selecting either or both filters updates the prerendered game cards in the browser, so filtering works without a runtime API while remaining keyboard accessible.
 
+The catalog is statically paginated in groups of nine games. The first page is available at `/`, with later pages at `/games/2`, `/games/3`, and so on. Pagination links are keyboard accessible, and filters apply to the games on the current page.
+
 ## Using this template
 
 This repository is a GitHub template. When you create a new repository from it, a one-time **Bootstrap template issues** workflow (`.github/workflows/bootstrap-issues.yml`) runs automatically on the first push to `main` and opens a set of starter issues describing suggested first features. Each issue is defined by a Markdown file in `.github/bootstrap-issues/` — the first heading becomes the issue title and the remaining content becomes the body — so you can edit, add, or remove files there to control which issues are created.
