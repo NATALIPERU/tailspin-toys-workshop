@@ -1,5 +1,9 @@
 import { test, expect, type Response } from '@playwright/test';
 
+/**
+ * E2E tests for the games listing page.
+ * Verifies navigation, game card rendering, and category/publisher filtering.
+ */
 test.describe('Game Listing and Navigation', () => {
   test('should display games with titles on index page', async ({ page }) => {
     await test.step('Navigate to homepage', async () => {
@@ -22,6 +26,42 @@ test.describe('Game Listing and Navigation', () => {
       await expect(gameCards.first().getByTestId('game-title')).toBeVisible();
       await expect(gameCards.first().getByTestId('game-title')).not.toBeEmpty();
     });
+  });
+
+  test('should filter games by multiple categories', async ({ page }) => {
+    await page.goto('/');
+
+    const categoryFilter = page.getByTestId('category-filter');
+    await categoryFilter.selectOption([
+      { label: 'Adventure' },
+      { label: 'Puzzle' },
+    ]);
+
+    const visibleCards = page.locator('[data-testid="game-card"]:not([hidden])');
+    await expect(visibleCards).toHaveCount(8);
+    await expect(page.getByTestId('filter-result-count')).toHaveText('Showing 8 games');
+  });
+
+  test('should combine category and publisher filters', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByTestId('category-filter').selectOption({ label: 'Strategy' });
+    await page.getByTestId('publisher-filter').selectOption({ label: 'CodeForge Studios' });
+
+    const visibleCards = page.locator('[data-testid="game-card"]:not([hidden])');
+    await expect(visibleCards).toHaveCount(1);
+    await expect(visibleCards.first()).toHaveAttribute('data-game-title', 'DevOps Dominion');
+    await expect(page.getByTestId('filter-result-count')).toHaveText('Showing 1 game');
+  });
+
+  test('should clear selected filters', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByTestId('category-filter').selectOption({ label: 'Strategy' });
+    await page.getByTestId('clear-filters').click();
+
+    await expect(page.locator('[data-testid="game-card"]:not([hidden])')).toHaveCount(21);
+    await expect(page.getByTestId('filter-result-count')).toHaveText('Showing 21 games');
   });
 
   test('should navigate to correct game details page when clicking on a game', async ({ page }) => {
